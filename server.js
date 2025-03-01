@@ -3,6 +3,7 @@ import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import mongoose, { model, Schema } from 'mongoose';
+import passport from 'passport';
 
 const app = express();
 
