@@ -1,52 +1,27 @@
 import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import mongoose, { model, Schema } from 'mongoose';
-import passport from 'passport';
 
 const app = express();
 
 // Parsing json
-
 app.use(express.json());
 app.use(cors());
 
-app.use(passport.initialize());
-
 // Database configuration
-
 mongoose.connect('mongodb://localhost:27017/login-authentication')
     .then(() => console.log('MongoDB Connected'))
     .catch(() => console.error('Connection error'));
 
 // Model
-
 const userSchema = new Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true }
-})
+});
 
 const User = model('User', userSchema);
-
-// JWT
-
-const authenticate = (req, res, next) => {
-    const token = req.header('Authorization')?.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).json({ message: 'No token provided!' });
-    }
-
-    try {
-        const decoded = jwt.verify(token, 'khsbakfsnkj');
-        req.user = decoded;
-        next()
-    } catch (error) {
-        return res.status(500).json({ message: 'Token invalid!', error: error.message });
-    }
-}
 
 // Controller
 
@@ -57,8 +32,7 @@ app.get('/', async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Error fetching users!', error: error.message });
     }
-})
-
+});
 
 app.post('/register', async (req, res) => {
     const { name, email, password } = req.body;
@@ -70,7 +44,7 @@ app.post('/register', async (req, res) => {
     try {
         const existingUser = await User.findOne({ email });
 
-        if (existingUser) throw new Error("Email already exists");
+        if (existingUser) throw new Error("Email already exists!");
 
         const hashPassword = await bcrypt.hash(password, 10);
         const users = new User({ name, email, password: hashPassword });
@@ -79,13 +53,11 @@ app.post('/register', async (req, res) => {
         res.status(200).json({ message: 'User registered successfully!' });
 
     } catch (error) {
-
         res.status(500).json({ message: 'Server error!', error: error.message });
     }
 });
 
-
-app.post('/login', authenticate, async (req, res) => {
+app.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -99,26 +71,67 @@ app.post('/login', authenticate, async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) throw new Error("Email or password is incorrect!");
 
-        const token = jwt.sign({ id: user._id }, 'khsbakfsnkj', { expiresIn: '1h' });
-
-        res.status(200).json({ message: 'Login successfull!', token });
+        res.status(200).json({ message: 'Login successful!' });
 
     } catch (error) {
-
         res.status(500).json({ message: 'Server error!', error: error.message });
     }
 });
 
+app.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, email, password } = req.body;
 
-// Google OAuth routes
-app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+    try {
+        const user = await User.findById(id);
 
-app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), (req, res) => {
-    const token = jwt.sign({ id: req.user._id }, 'khsbakfsnkj', { expiresIn: '1h' });
-    res.redirect(`http://localhost:3000/?token=${token}`);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found!' });
+        }
+
+        if (email && email !== user.email) {
+            const existingUser = await User.findOne({ email });
+
+            if (existingUser) {
+                return res.status(404).json({ message: 'Email id already in use!' });
+            }
+
+            user.email = email;
+        }
+
+        if (name) {
+            user.name = name;
+        }
+
+        if (password) {
+            user.password = await bcrypt.hash(password, 10);
+        }
+
+        await user.save();
+        res.status(200).json({ message: 'Updated successfully!' });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Server error!' });
+    }
 });
 
+app.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deleteUser = await User.findByIdAndDelete(id);
+
+        if (!deleteUser) {
+            return res.status(404).json({ message: 'User not found!' });
+        }
+
+        res.status(200).json({ message: 'Deleted successfully!' });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Server error!' });
+    }
+});
 
 app.listen(5000, () => {
     console.log(`Server running on http://localhost:${5000}`);
-})
+});
