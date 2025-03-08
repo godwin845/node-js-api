@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(cors());
 
 // Database configuration
-mongoose.connect('mongodb+srv://godwinraj845:shopping@shopping.j7cbi.mongodb.net/?retryWrites=true&w=majority&appName=Shopping')
+mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB Connected'))
     .catch(() => console.error('Connection error'));
 
