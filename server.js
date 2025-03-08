@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import mongoose, { model, Schema } from 'mongoose';
+import dotenv from 'dotenv'
+
+dotenv.config();
 
 const app = express();
 
