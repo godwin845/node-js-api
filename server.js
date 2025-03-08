@@ -5,6 +5,9 @@ import mongoose, { model, Schema } from 'mongoose';
 
 const app = express();
 
+const HOST = '0.0.0.0';
+const PORT = 10000;
+
 // Parsing json
 app.use(express.json());
 app.use(cors());
@@ -132,6 +135,6 @@ app.delete('/:id', async (req, res) => {
     }
 });
 
-app.listen(5000, () => {
-    console.log(`Server running on http://localhost:${5000}`);
+app.listen(PORT, HOST, () => {
+    console.log(`Server running on http://${HOST}:${PORT}`);
 });
