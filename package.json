@@ -2,9 +2,8 @@
   "name": "js-api",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
   "scripts": {
-    "start": "node --watch server.js"
+    "start": "ts-node-dev src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +16,14 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.10.2"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/mongoose": "^5.11.96",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.2"
   }
 }
